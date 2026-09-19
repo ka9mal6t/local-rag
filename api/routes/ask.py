@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
-from ..database import db
-from ..models.chat import Chat
-from ..models.message import Message
-from ..services.ai_service import generate_response, summarize_messages
+from api.database import db
+from api.models.chat import Chat
+from api.models.message import Message
+from api.services.ai_service import generate_response, summarize_messages
 
 ask = Blueprint("ask", __name__)
 

@@ -1,5 +1,5 @@
 from flask import Blueprint, Response, stream_with_context, request
-from app.services.rag import generate_answer_stream
+from api.services.rag import generate_answer_stream
 
 
 chat_pdf = Blueprint("chat_pdf", __name__)

@@ -1,8 +1,8 @@
 from flask import Flask
 from api.services.rag_service import RAGService
 from api.services.static_service import get_static_files_paths
-from database import db
-from .route import main
+from api.database import db
+from api.route import main
 from ollama import Client
 
 def create_app():

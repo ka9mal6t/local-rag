@@ -1,7 +1,6 @@
 from flask import request, jsonify, Blueprint
 import os
 from flask import current_app
-from app.services.static_service import get_static_files_paths
 
 upload_pdf = Blueprint("upload-pdf", __name__)
 

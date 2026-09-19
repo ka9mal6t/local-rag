@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-from app.services.rag import generate_answer
-from app.logs import Log
-from app.config import *
+from api.services.rag import generate_answer
+from api.logs import Log
+from api.config import *
 
 ask_pdf = Blueprint("ask_pdf", __name__)
 

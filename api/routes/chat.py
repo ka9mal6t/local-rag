@@ -1,9 +1,9 @@
 from flask import Blueprint, Response, stream_with_context, request
 from flask import Blueprint, request, jsonify
-from ..database import db
-from ..models.chat import Chat
-from ..models.message import Message
-from ..services.ai_service import generate_response_stream, summarize_messages
+from api.database import db
+from api.models.chat import Chat
+from api.models.message import Message
+from api.services.ai_service import generate_response_stream, summarize_messages
 
 chat = Blueprint("chat", __name__)
 

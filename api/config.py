@@ -1,0 +1,1 @@
+ai_model = "llama3.2:latest"

@@ -9,8 +9,13 @@ from api.logs import Log
 
 class RAGService:
 
+    @staticmethod
+    def _embedding_dimension():
+        return len(embed_texts(["test"])[0])
+
     def __init__(self, path, files):
         self.logger = Log.get("pdf")
+        self.path = path
         index_exists = os.path.exists(os.path.join(path, os.path.join(
             "vector_index", "faiss.index")))
 
@@ -21,6 +26,29 @@ class RAGService:
             return
 
         self.rebuilding(path, files)
+
+    def _rebuild_index_from_chunks(self, texts, metadata):
+        faiss_index_path = os.path.join(self.path, "vector_index", "faiss.index")
+        metadata_path = os.path.join(self.path, "vector_index", "metadata.pkl")
+
+        for file_path in (faiss_index_path, metadata_path):
+            if os.path.exists(file_path):
+                os.remove(file_path)
+
+        if not texts:
+            dimension = self._embedding_dimension()
+            self.store = VectorStore(self.path, dimension)
+            self.store.save()
+            self.keyword_search = KeywordSearch(self.store.texts, self.store.metadata)
+            return
+
+        embeddings = embed_texts(texts)
+        dimension = len(embeddings[0])
+
+        self.store = VectorStore(self.path, dimension)
+        self.store.add(embeddings, texts, metadata)
+        self.store.save()
+        self.keyword_search = KeywordSearch(self.store.texts, self.store.metadata)
 
     def rebuilding(self, path, files):
         self.logger.info("Building new FAISS index...")
@@ -52,6 +80,18 @@ class RAGService:
         chunks = chunk_text(text)
 
         embeddings = embed_texts(chunks)
+        embedding_dimension = len(embeddings[0])
+
+        if not hasattr(self.store, "index") or self.store.index.d != embedding_dimension:
+            existing_texts = list(self.store.texts)
+            existing_metadata = list(self.store.metadata)
+            merged_texts = existing_texts + chunks
+            merged_metadata = existing_metadata + [
+                {"source": os.path.basename(file_path)}
+                for _ in chunks
+            ]
+            self._rebuild_index_from_chunks(merged_texts, merged_metadata)
+            return
 
         metadata = [
             {"source": os.path.basename(file_path)}
@@ -63,6 +103,34 @@ class RAGService:
 
         # обновляем keyword search
         self.keyword_search = KeywordSearch(self.store.texts, self.store.metadata)
+
+    def list_documents(self):
+        documents = sorted({
+            metadata["source"]
+            for metadata in self.store.metadata
+            if metadata.get("source")
+        })
+        return documents
+
+    def delete_document(self, path, file_name):
+        if not file_name:
+            return False
+
+        remaining_texts = []
+        remaining_metadata = []
+
+        for text, metadata in zip(self.store.texts, self.store.metadata):
+            if metadata.get("source") != file_name:
+                remaining_texts.append(text)
+                remaining_metadata.append(metadata)
+
+        self._rebuild_index_from_chunks(remaining_texts, remaining_metadata)
+
+        file_path = os.path.join(path, "static", "pdf", file_name)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        return True
 
     def retrieve(self, question, n=8):
         query_embedding = embed_query(question)

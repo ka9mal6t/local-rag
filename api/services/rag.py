@@ -81,3 +81,7 @@ def generate_answer_stream(question):
         content = chunk["message"]["content"]
         if content:
             yield f"data: {content}\n\n"
+
+    if sources:
+        source_text = ", ".join(sorted(sources))
+        yield f"data: Sources: {source_text}\n\n"

@@ -1,4 +1,5 @@
 from flask import current_app
+from api.config import FAIL_PDF_SEARCH, ai_model
 
 
 def generate_answer(question):
@@ -19,11 +20,10 @@ def generate_answer(question):
         messages=[
             {
                 "role": "system",
-                "content":
-                    """
+                "content": f"""
                     You are an assistant answering questions based strictly on provided context.
                     If the answer is not in the context, say:
-                    "I cannot find the answer in the document."
+                    "{FAIL_PDF_SEARCH}"
                     Be clear and structured.
                     """
             },
@@ -61,10 +61,10 @@ def generate_answer_stream(question):
         messages=[
             {
                 "role": "system",
-                "content": """
+                "content": f"""
                You are an assistant answering questions based strictly on provided context.
                 If the answer is not in the context, say:
-                "I cannot find the answer in the document."
+                "{FAIL_PDF_SEARCH}"
                 Be clear and structured.
                 """
             },
